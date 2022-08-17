@@ -1,11 +1,11 @@
 //! Module for JMESPath runtime variables.
 
+use indexmap::IndexMap;
 use serde::de::IntoDeserializer;
 use serde::*;
 use serde_json::error::Error;
 use serde_json::value::Value;
 use std::cmp::{max, Ordering};
-use std::collections::BTreeMap;
 use std::fmt;
 use std::iter::Iterator;
 use std::string::ToString;
@@ -55,7 +55,7 @@ pub enum Variable {
     Bool(bool),
     Number(Number),
     Array(Vec<Rcvar>),
-    Object(BTreeMap<String, Rcvar>),
+    Object(IndexMap<String, Rcvar>),
     Expref(Ast),
 }
 
@@ -180,7 +180,7 @@ fn convert_map<'a, T>(value: T) -> Result<Variable, JmespathError>
 where
     T: Iterator<Item = (&'a String, &'a Value)>,
 {
-    let mut map: BTreeMap<String, Rcvar> = BTreeMap::new();
+    let mut map: IndexMap<String, Rcvar> = IndexMap::new();
     for kvp in value {
         map.insert(kvp.0.to_owned(), kvp.1.to_jmespath()?);
     }
@@ -264,9 +264,9 @@ impl Variable {
         self.as_object().is_some()
     }
 
-    /// If the value is an Object, returns the associated BTreeMap.
+    /// If the value is an Object, returns the associated IndexMap.
     /// Returns None otherwise.
-    pub fn as_object(&self) -> Option<&BTreeMap<String, Rcvar>> {
+    pub fn as_object(&self) -> Option<&IndexMap<String, Rcvar>> {
         match self {
             Variable::Object(map) => Some(map),
             _ => None,
@@ -604,7 +604,7 @@ impl<'de> de::Deserialize<'de> for Variable {
             where
                 V: de::MapAccess<'de>,
             {
-                let mut values = BTreeMap::new();
+                let mut values = IndexMap::new();
 
                 while let Some((key, value)) = visitor.next_entry()? {
                     values.insert(key, value);
@@ -868,7 +868,7 @@ impl<'de> de::SeqAccess<'de> for SeqDeserializer {
 }
 
 struct MapDeserializer {
-    iter: <BTreeMap<String, Rcvar> as IntoIterator>::IntoIter,
+    iter: <IndexMap<String, Rcvar> as IntoIterator>::IntoIter,
     value: Option<Variable>,
 }
 
@@ -959,12 +959,12 @@ pub struct TupleVariantState {
 #[doc(hidden)]
 pub struct StructVariantState {
     name: String,
-    map: BTreeMap<String, Rcvar>,
+    map: IndexMap<String, Rcvar>,
 }
 
 #[doc(hidden)]
 pub struct MapState {
-    map: BTreeMap<String, Rcvar>,
+    map: IndexMap<String, Rcvar>,
     next_key: Option<String>,
 }
 
@@ -1096,7 +1096,7 @@ impl ser::Serializer for Serializer {
     where
         T: ser::Serialize,
     {
-        let mut values = BTreeMap::new();
+        let mut values = IndexMap::new();
         values.insert(String::from(variant), Rcvar::new(to_variable(&value)?));
         Ok(Variable::Object(values))
     }
@@ -1141,7 +1141,7 @@ impl ser::Serializer for Serializer {
 
     fn serialize_map(self, _len: Option<usize>) -> Result<MapState, Error> {
         Ok(MapState {
-            map: BTreeMap::new(),
+            map: IndexMap::new(),
             next_key: None,
         })
     }
@@ -1159,7 +1159,7 @@ impl ser::Serializer for Serializer {
     ) -> Result<StructVariantState, Error> {
         Ok(StructVariantState {
             name: String::from(variant),
-            map: BTreeMap::new(),
+            map: IndexMap::new(),
         })
     }
 }
@@ -1226,7 +1226,7 @@ impl ser::SerializeTupleVariant for TupleVariantState {
     }
 
     fn end(self) -> Result<Variable, Error> {
-        let mut object = BTreeMap::new();
+        let mut object = IndexMap::new();
         object.insert(self.name, Rcvar::new(Variable::Array(self.vec)));
         Ok(Variable::Object(object))
     }
@@ -1295,7 +1295,7 @@ impl ser::SerializeStructVariant for StructVariantState {
     }
 
     fn end(self) -> Result<Variable, Error> {
-        let mut object = BTreeMap::new();
+        let mut object = IndexMap::new();
         object.insert(self.name, Rcvar::new(Variable::Object(self.map)));
         Ok(Variable::Object(object))
     }
@@ -1307,7 +1307,6 @@ mod tests {
     use crate::ast::{Ast, Comparator};
     use crate::Rcvar;
     use serde_json::{self, Number, Value};
-    use std::collections::BTreeMap;
 
     #[test]
     fn creates_variable_from_str() {
@@ -1533,8 +1532,8 @@ mod tests {
     #[test]
     fn test_parses_json_object() {
         let var = Variable::from_json("{\"a\": 1, \"b\": {\"c\": true}}").unwrap();
-        let mut expected = BTreeMap::new();
-        let mut sub_obj = BTreeMap::new();
+        let mut expected = IndexMap::new();
+        let mut sub_obj = IndexMap::new();
         expected.insert(
             "a".to_string(),
             Rcvar::new(Variable::Number(Number::from_f64(1.0).unwrap())),
