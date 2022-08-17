@@ -1,5 +1,13 @@
 # JMESPath for Rust
 
+## This fork preserves order
+
+This is a fork of [jmespath.rs](https://github.com/jmespath/jmespath.rs) that
+preserves order. It is highly incompatible with the code upstream, probably
+someone who wants to take over and add this as a feature, this would be a nice
+addition to the library.
+
+
 Rust implementation of [JMESPath](http://jmespath.org), a query language for JSON.
 
 [Documentation](https://docs.rs/jmespath/)
