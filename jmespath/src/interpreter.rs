@@ -1,11 +1,10 @@
 //! Interprets JMESPath expressions.
 
-use std::collections::BTreeMap;
-
 use super::ast::Ast;
 use super::variable::Variable;
 use super::Context;
 use super::{ErrorReason, JmespathError, Rcvar, RuntimeError};
+use indexmap::IndexMap;
 
 /// Result of searching data using a JMESPath Expression.
 pub type SearchResult = Result<Rcvar, JmespathError>;
@@ -135,7 +134,7 @@ pub fn interpret(data: &Rcvar, node: &Ast, ctx: &mut Context<'_>) -> SearchResul
             if data.is_null() {
                 Ok(Rcvar::new(Variable::Null))
             } else {
-                let mut collected = BTreeMap::new();
+                let mut collected = IndexMap::new();
                 for kvp in elements {
                     let value = interpret(data, &kvp.value, ctx)?;
                     collected.insert(kvp.key.clone(), value);

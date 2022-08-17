@@ -1,12 +1,12 @@
 //! JMESPath functions.
 
 use std::cmp::{max, min};
-use std::collections::BTreeMap;
 use std::fmt;
 
 use crate::interpreter::{interpret, SearchResult};
 use crate::variable::{JmespathType, Variable};
 use crate::{Context, ErrorReason, JmespathError, Rcvar, RuntimeError};
+use indexmap::IndexMap;
 use serde_json::Number;
 
 /// Represents a JMESPath function.
@@ -614,7 +614,7 @@ defn!(MergeFn, vec![arg!(object)], Some(arg!(object)));
 impl Function for MergeFn {
     fn evaluate(&self, args: &[Rcvar], ctx: &mut Context<'_>) -> SearchResult {
         self.signature.validate(args, ctx)?;
-        let mut result = BTreeMap::new();
+        let mut result = IndexMap::new();
         for arg in args {
             result.extend(
                 arg.as_object()
