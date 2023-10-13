@@ -1,0 +1,11 @@
+# DO NOT EDIT: BEGIN
+# This snippet has been inserted automatically by mobsuccessbot, do not edit!
+# If changes are needed, update the action rust in
+# https://github.com/mobsuccess-devops/github-mobsuccess-policy
+on:
+  push:
+    branches: [main, master, preprod, prod]
+  pull_request:
+    types: [opened, synchronize, reopened]
+name: Rust
+jobs:# DO NOT EDIT: END
